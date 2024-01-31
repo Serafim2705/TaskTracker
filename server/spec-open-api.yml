@@ -174,27 +174,6 @@ paths:
           description: Доступ запрещен
         '404':
           description: Задача не найдена
-  # /task/:
-  #   get:
-  #     security:
-  #       - HTTPAuthorization: []
-  #     tags: 
-  #     - task
-  #     summary: Получить задачу по описанию
-  #     parameters:
-  #       - name: describe
-  #         in: query
-  #         required: true
-  #         description: Описание задачи
-  #         schema:
-  #           type: string
-  #     responses:
-  #       '200':
-  #         description: Успешный запрос
-  #       '403':
-  #         description: Доступ запрещен
-  #       '404':
-  #         description: Задача не найдена
   /task/:
     get:
       security:
@@ -403,4 +382,3 @@ components:
     HTTPAuthorization:
       type: http
       scheme: bearer
-      # bearerFormat: JWT
