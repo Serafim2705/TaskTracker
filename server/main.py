@@ -101,6 +101,10 @@ def register():
         return {"Message": 'Неверный формат запроса'}, 400
 
     user = User.query.filter_by(username=username).first()
+    if role:
+        if role not in [e.name for e in Role]:
+            return {"Message": 'Несуществующая роль'}, 400
+
     if user:
         return {"Message": 'Пользователь с таким именем уже существует'}, 400
     try:
