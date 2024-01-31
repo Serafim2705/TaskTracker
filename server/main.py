@@ -95,20 +95,20 @@ def register():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
-    role = data.get('role')
+    new_role = data.get('role')
     # TODO роль выбирать самому нельзя??
     if not username or not password:
         return {"Message": 'Неверный формат запроса'}, 400
 
     user = User.query.filter_by(username=username).first()
-    if role:
-        if role not in [e.name for e in Role]:
+    if new_role:
+        if new_role not in [str(e.name) for e in Role]:
             return {"Message": 'Несуществующая роль'}, 400
 
     if user:
         return {"Message": 'Пользователь с таким именем уже существует'}, 400
     try:
-        new_user = User(username=username, user_password=generate_password_hash(password), role_name=role)
+        new_user = User(username=username, user_password=generate_password_hash(password), role_name=new_role)
         db.session.add(new_user)
         db.session.commit()
     except:
@@ -179,7 +179,7 @@ def change_user():
         return {"Message": 'Укажите новый логин или роль'}, 400
 
     if new_role:
-        if new_role not in [e.name for e in Role]:
+        if new_role not in [str(e.name) for e in Role]:
             return {"Message": 'Неверная роль!'}, 404
         cur_user.role_name = new_role
 
