@@ -116,12 +116,14 @@ paths:
             schema:
               type: object
               properties:
-                username:
+                prev_username:
                   type: string
-                role:
+                new_username:
+                  type: string
+                new_role:
                   type: string
               required:
-                - username
+                - prev_username
                 # - role
       responses:
         '200':
@@ -320,7 +322,7 @@ paths:
         - HTTPAuthorization: []
       tags: 
       - task
-      summary: Добавить подзадачи к задаче
+      summary: Установить подзадачи к задаче
       requestBody:
         required: true
         content:
@@ -328,14 +330,14 @@ paths:
             schema:
               type: object
               properties:
-                id:
+                main_task_id:
                   type: integer
                 subtasks:
                   type: array
                   items:
-                    type: string
+                    type: integer
               required:
-                - id
+                - main_task_id
                 - subtasks
       responses:
         '200':
@@ -350,7 +352,7 @@ paths:
         - HTTPAuthorization: []
       tags: 
       - task
-      summary: Создать связанную заблокированную задачу
+      summary: Установить список блокируемых задач
       requestBody:
         required: true
         content:

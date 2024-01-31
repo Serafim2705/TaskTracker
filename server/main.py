@@ -10,6 +10,7 @@ from sqlalchemy import or_
 from flask_swagger_ui import get_swaggerui_blueprint
 import yaml
 import json
+import re
 
 app = Flask(__name__)
 CORS(app)
@@ -95,24 +96,30 @@ def register():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
-    new_role = data.get('role')
-    # TODO роль выбирать самому нельзя??
+    pattern = r'^[a-zA-Z0-9]+$'
+
     if not username or not password:
         return {"Message": 'Неверный формат запроса'}, 400
 
+    if not re.match(pattern, username):
+        return {"Message": 'Логин должен содержать только латинские символы и цифры'}, 400
+    if len(str(username)) < 5 or len(str(username)) > 10:
+        return {"Message": 'Логин должен быть от 5 до 10 символов'}, 400
+
+    if not re.match(pattern, password):
+        return {"Message": 'Пароль должен содержать только латинские символы и цифры'}, 400
+    if len(str(password)) < 5 or len(str(password)) > 15:
+        return {"Message": 'Пароль должен быть от 5 до 15 символов'}, 400
+
     user = User.query.filter_by(username=username).first()
-    if new_role:
-        if new_role not in [str(e.name) for e in Role]:
-            return {"Message": 'Несуществующая роль'}, 400
 
     if user:
         return {"Message": 'Пользователь с таким именем уже существует'}, 400
-    try:
-        new_user = User(username=username, user_password=generate_password_hash(password), role_name=new_role)
-        db.session.add(new_user)
-        db.session.commit()
-    except:
-        return {"Message": 'Неизвестная ошибка'}, 500
+
+    new_user = User(username=username, user_password=generate_password_hash(password))
+    db.session.add(new_user)
+    db.session.commit()
+
     token = generate_password_hash(username)
     active_tokens[token] = username
     return {"Message": 'Регистрация выполнена успешно!',
@@ -125,8 +132,14 @@ def change_passwords():
     data = request.get_json()
     new_password = data.get('new_password')
     prev_password = data.get('prev_password')
+    pattern = r'^[a-zA-Z0-9]+$'
     if not prev_password or not new_password:
         return {"Message": 'Неверный формат запроса'}, 400
+
+    if not re.match(pattern, new_password):
+        return {"Message": 'Пароль должен содержать только латинские символы и цифры'}, 400
+    if len(str(new_password)) < 5 or len(str(new_password)) > 15:
+        return {"Message": 'Пароль должен быть от 5 до 15 символов'}, 400
 
     try:
         user = User.query.filter_by(username=auth.current_user()).first()
@@ -137,17 +150,17 @@ def change_passwords():
         return {"Message": 'Неверный пароль'}, 403
     user.user_password = generate_password_hash(new_password)
 
-    try:
-        db.session.add(user)
-        db.session.commit()
-    except:
-        return {"Message": 'Неизвестная ошибка'}, 500
-
+    db.session.add(user)
+    db.session.commit()
+    print(auth.current_user())
+    print(active_tokens)
     token = request.headers.get('Authorization')
     token = token[7:]
     active_tokens.pop(token)
     token = generate_password_hash(auth.current_user())
     active_tokens[token] = auth.current_user()
+    print(auth.current_user())
+    print(active_tokens)
     return {"Message": 'Пароль успешно изменен',
             "Authorization": token}, 200
 
@@ -156,6 +169,7 @@ def change_passwords():
 @auth.login_required
 def change_user():
     cur_user = User.query.filter_by(username=auth.current_user()).first()
+    print(cur_user.role_name.name)
     if cur_user.role_name:
         if cur_user.role_name.name != "Manager":
             return {"Message": 'Только менеджер может изменять данные других пользователей '}, 403
@@ -167,12 +181,12 @@ def change_user():
     new_role = data.get('new_role')
     new_username = data.get('new_username')
     if prev_username:
-        cur_user = User.query.filter_by(username=prev_username).first()
+        new_user = User.query.filter_by(username=prev_username).first()
     elif user_id:
-        cur_user = User.query.filter_by(id=user_id).first()
+        new_user = User.query.filter_by(id=user_id).first()
     else:
         return {"Message": 'Неверный формат, требуется id или username пользователя!'}, 400
-    if not cur_user:
+    if not new_user:
         return {"Message": 'Пользователь с такими данными не найден!'}, 404
 
     if not new_role and not new_username:
@@ -181,18 +195,26 @@ def change_user():
     if new_role:
         if new_role not in [str(e.name) for e in Role]:
             return {"Message": 'Неверная роль!'}, 404
-        cur_user.role_name = new_role
+        new_user.role_name = new_role
 
+    pattern = r'^[a-zA-Z0-9]+$'
     if new_username:
+        if not re.match(pattern, new_username):
+            return {"Message": 'Логин должен содержать только латинские символы и цифры'}, 400
+        if len(str(new_username)) < 5 or len(str(new_username)) > 10:
+            return {"Message": 'Логин должен быть от 5 до 10 символов'}, 400
+
         if User.query.filter_by(username=new_username).first():
             return {"Message": 'Имя занято!'}, 400
-        cur_user.username = new_username
-        for token, user in active_tokens:
-            if user == auth.current_user():
+        new_user.username = new_username
+        print(active_tokens)
+        print(auth.current_user())
+        for token, user in active_tokens.items():
+            if user == prev_username:
                 active_tokens[token] = new_username
                 break
 
-    db.session.add(cur_user)
+    db.session.add(new_user)
     db.session.commit()
 
     return {"Message": 'Данные успешно обновлены!'}, 200
@@ -233,7 +255,7 @@ def create_task():
         if cur_user.role_name.name != 'Manager':
             return {"Message": 'Только пользователь с правами менеджера может создавать задачи'}, 403
     else:
-        return {"Message": 'Внутрення ошибка сервера'}, 500
+        return {"Message": 'Внутрення ошибка сервера: ошибка при проверке данных пользователя'}, 500
 
     if executor:
         user = User.query.filter_by(id=executor).first()
@@ -253,8 +275,6 @@ def create_task():
 
     if sub_tasks:
         sub_tasks = list(set(sub_tasks))
-
-        #  подзадача мб привязана только к любой другой (основной задаче), которая не имеет "надзадач"
         incorrect_id = check_subtasks(sub_tasks, new_task.id)
         if incorrect_id:
             db.session.rollback()
@@ -337,7 +357,6 @@ def check_subtasks(sub_tasks, new_task_id):
     for task in all_sub_tasks:
         all_sub_tasks_ids.add(task.main_id)
         all_sub_tasks_ids.add(task.subtask_id)
-    #  подзадача мб привязана только к любой другой (основной задаче), которая не имеет "надзадач"
     for id_sub in sub_tasks:
         if id_sub in all_sub_tasks_ids or id_sub == new_task_id:
             return id_sub
@@ -537,7 +556,11 @@ def get_tasks():
     users_dict = {}
     users = User.query.all()
     for user in users:
-        users_dict[user.id] = [user.id, user.username, user.role_name.name]
+        users_dict[user.id] = [user.id, user.username]
+        if user.role_name:
+            users_dict[user.id].append(user.role_name.name)
+        else:
+            users_dict[user.id].append('None')
     subtasks = SubtaskForTask.query.all()
     blocktasks = TaskBlockTask.query.all()
     for task in task_list:
@@ -636,11 +659,11 @@ def get_task_id(task_id):
     subtasks = SubtaskForTask.query.filter_by(main_id=task_id).all()
     subtasks_list = []
     for e in subtasks:
-        t = Task.query.filter_by(id=e.main_id).first()
+        t = Task.query.filter_by(id=e.subtask_id).first()
         subtasks_list.append({"title": t.topic, "description": t.description, "status": t.status.name,
-                              "id": t.id, "executor": users_dict[t.executor], "edit_date": t.date_of_edit,
+                              "id": t.id, "executor": users_dict.get(t.executor), "edit_date": t.date_of_edit,
                               "create_date": t.date_of_found, "priority": t.priority,
-                              "type_id": t.type_of_task, "creator": users_dict[t.owner_task]})
+                              "type_id": t.type_of_task, "creator": users_dict.get(t.owner_task)})
 
     response = {"title": task.topic, "description": task.description, "status": task.status.name,
                 "id": task.id, "executor": users_dict.get(task.executor), "edit_date": task.date_of_edit,
