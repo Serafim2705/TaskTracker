@@ -484,14 +484,14 @@ def edit_status_task():
             if executor.role_name.name == 'Tester':
                 return {'Message': "Тестировщик не может быть назначен на эту задачу"}, 400
         else:
-            return {'Message': "У исполнителя не определена роль"}, 500
+            return {'Message': "У исполнителя не определена роль"}, 400
 
     if new_status == "Testing" and executor:
         if executor.role_name:
             if executor.role_name.name == 'Developer':
                 return {'Message': "Developer не может быть назначен на эту задачу"}, 400
         else:
-            return {'Message': "У исполнителя не определена роль"}, 500
+            return {'Message': "У исполнителя не определена роль"}, 400
 
     if new_status not in [e.name for e in Status]:
         return {'Message': "Несуществующий статус"}, 404
