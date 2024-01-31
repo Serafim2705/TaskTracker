@@ -1,6 +1,6 @@
 
-let acces_token = ''
-let tasks = {}
+let acces_token = '';
+let tasks = {};
 function Login() {
   const username = document.getElementsByName('username')[0].value;
   const password = document.getElementsByName('password')[0].value;
