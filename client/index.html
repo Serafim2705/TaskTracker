@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Task Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            /* margin: 0; */
+            padding: 20px;
+            /* height: 100%; */
+
+        }
+
+        header {
+            /* background: #21e18e; */
+            background: linear-gradient(to bottom, #698b26c6, rgba(139, 207, 13, 0.5));
+
+            border-bottom: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            margin-right: 10px;
+            /* background-color: lightgray; */
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            /* align-items: center; */
+        }
+        
+
+        h1 {
+            margin: 0;
+        }
+
+
+
+        .category {
+            display: inline-block;
+            vertical-align: top;
+            width: 240px;
+            margin-right: 20px;
+        }
+
+
+        .section {
+            background: linear-gradient(to bottom, #a1de2f, rgba(161, 222, 47, 0.5));
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;    
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 16px;
+            margin: 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .task {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            /* display: flexbox; */
+            clear: both;
+            /* display: flex; */
+        }
+
+        .task-title {
+            font-size: 14px;
+            margin: 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+
+
+        .task-description {
+            font-size: 12px;
+            margin: 0;
+        }
+        .task-edit-button {
+            font-size: 9px;
+            float: right;
+            width: 40px;
+            height: 20px;
+            
+        }
+        .footer {
+            /* width: 100%; */
+            background-color: hsl(125, 43%, 22%);
+
+            background: linear-gradient(to bottom, #698b26c6, rgba(139, 207, 13, 0.5));
+
+            border-radius: 5px;
+
+            height: 100px;
+
+            position: relative;
+
+            margin-top: 260px;
+
+            margin-right: 10px;
+
+        }
+/*         
+        .task:nth-child(1) {
+        float: right;
+        } */
+    </style>
+    <script src="script.js"></script>
+    
+</head>
+<body>
+    <script>
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drag(event) {
+            event.dataTransfer.setData("text", event.target.id);
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            var data = event.dataTransfer.getData("text");
+            var draggedElement = document.getElementById(data);
+            var targetSection = event.target;
+            console.log(draggedElement.id);
+            console.log(targetSection.childNodes[1].textContent);
+            Drag_task(targetSection.childNodes[1].textContent,draggedElement.id);
+
+            if (!targetSection.classList.contains('section')) {
+                targetSection = targetSection.closest('.section');
+            }
+            draggedElement.parentNode.removeChild(draggedElement);
+
+            targetSection.appendChild(draggedElement);
+        }   
+      </script>
+    <header>
+        <h1>Task Tracker</h1>
+        <div>
+            <input type="text" class="search-input" style="padding: 5px;" placeholder="Поиск">
+            <button class="submit-button" style="padding: 5px 10px; margin-left: 20px;" onclick = "load_tasks_by_text()">Найти</button>
+            
+        </div>
+        <div class="user-info" style="display: inline-block;">
+            <span class="username">serov</span> - <span class="role">Manager</span>
+            <button class="logout-button" style="padding: 5px 10px; margin-left: 300px;" onclick = "Logout()">Выход</button>
+        </div>
+
+    </header>
+    <div class="Login" >
+        <form id="loginForm" action = "javascript:Login()" method = "post">
+            <p>Логин<input type = "text" name = "username"/></p>
+            <p>Пароль<input type = "password" name = "password"/></p>
+            <p><input type = "submit"/></p> 
+        </form>
+
+    </div>
+    <div class="task_list" style="display: none;">
+        <div class="category" style="display: flexbox;">
+            <div class="section" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2 class="section-title">To do</h2>
+
+            </div>
+        </div>
+
+        <div class="category" style="display: flexbox;">
+            <div class="section" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2 class="section-title">In progress</h2>
+
+            </div>
+        </div>
+        <div class="category">
+            <div class="section" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2 class="section-title">Code review</h2>
+
+            </div>
+        </div>
+        <div class="category">
+            <div class="section" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2 class="section-title">Dev test</h2>
+
+            </div>
+        </div>
+        <div class="category">
+            <div class="section" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2 class="section-title">Testing</h2>
+
+            </div>
+        </div>
+        <div class="category">
+            <div class="section" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2 class="section-title">Done</h2>
+
+            </div>
+        </div>
+        <div class="category">
+            <div class="section" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2 class="section-title">Wont fix</h2>
+
+            </div>
+        </div>
+    </div>
+    <footer class="footer" >
+        <div class="developer-info" style="margin-right: 50%;margin-top: 10px; text-align: right;float: right;">
+          <p>Разработчик: Serov Serafim</p>
+
+        </div>
+    </footer>
+</body>
+</html>

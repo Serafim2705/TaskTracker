@@ -1,0 +1,406 @@
+openapi: 3.0.0
+info:
+  title: My API
+  version: 1.0.0
+tags:
+- name: user
+  description: crud-операции над пользователями
+  externalDocs:
+    description: Find out more
+    url: http://swagger.io
+- name: task
+  description: crud-операции над задачами
+  externalDocs:
+    description: Find out more
+    url: http://swagger.io
+paths:
+  /user/login:
+    post:
+      tags:
+      - user
+      summary: Авторизация пользователя
+      description: Авторизация пользователя по логину и паролю
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Успешная авторизация
+        '400':
+          description: Неверный формат запроса
+  /user/logout:
+    post:
+      security:
+        - HTTPAuthorization: []
+      tags:
+      - user
+      summary: Выход пользователя
+      description: Выход авторизованного пользователя
+      responses:
+        '200':
+          description: Успешный выход
+        '500':
+          description: Внутренняя ошибка сервера
+  /user/register:
+    post:
+      tags:
+      - user
+      summary: Регистрация пользователя
+      description: Регистрация нового пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Успешная регистрация
+        '400':
+          description: Неверный формат запроса
+  /user/change_password:
+    post:
+      security:
+        - HTTPAuthorization: []
+      tags:
+      - user
+      summary: Изменение пароля
+      description: Изменение пароля текущего пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_password:
+                  type: string
+                prev_password:
+                  type: string
+              required:
+                - new_password
+                - prev_password
+      responses:
+        '200':
+          description: Пароль успешно изменен
+  /user/change_user:
+    post:
+      security:
+        - HTTPAuthorization: []
+      tags:
+      - user
+      summary: Изменение данных пользователя
+      description: Изменение данных пользователя (только для менеджера)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                role:
+                  type: string
+              required:
+                - username
+                # - role
+      responses:
+        '200':
+          description: User data changed successfully
+        '400':
+          description: Invalid request format
+        '403':
+          description: Access denied
+        '404':
+          description: User not found
+  /task/delete/{task_id}:
+    delete:
+      security:
+        - HTTPAuthorization: []
+      tags: 
+        - task
+      summary: Удалить задачу по идентификатору
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: Идентификатор задачи
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Задача успешно удалена
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Задача не найдена
+  /task/{id}:
+    get:
+      security:
+        - HTTPAuthorization: []
+      tags: 
+      - task
+      summary: Получить задачу по идентификатору
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор задачи
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный запрос
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Задача не найдена
+  # /task/:
+  #   get:
+  #     security:
+  #       - HTTPAuthorization: []
+  #     tags: 
+  #     - task
+  #     summary: Получить задачу по описанию
+  #     parameters:
+  #       - name: describe
+  #         in: query
+  #         required: true
+  #         description: Описание задачи
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: Успешный запрос
+  #       '403':
+  #         description: Доступ запрещен
+  #       '404':
+  #         description: Задача не найдена
+  /task/:
+    get:
+      security:
+        - HTTPAuthorization: []
+      tags: 
+      - task
+      summary: Получить список задач
+      parameters:
+        - name: text
+          in: query
+          description: Описание задачи
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный запрос
+        '403':
+          description: Доступ запрещен
+  /task/create:
+    post:
+      security:
+        - HTTPAuthorization: []
+      tags: 
+      - task
+      summary: Создать новую задачу
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                topic:
+                  type: string
+                description:
+                  type: string
+                executor:
+                  type: integer
+                priority:
+                  type: integer
+                type_of_task:
+                  type: integer
+                prev_tasks:
+                  type: array
+                sub_tasks:
+                  type: array
+              required:
+                - topic
+                - description
+                - type_of_task
+      responses:
+        '200':
+          description: Задача успешно создана
+        '403':
+          description: Доступ запрещен
+  /task/status:
+    put:
+      security:
+        - HTTPAuthorization: []
+      tags: 
+      - task
+      summary: Обновить статус задачи
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                task_id:
+                  type: integer
+                new_status:
+                  type: string
+              required:
+                - task_id
+                - new_status
+      responses:
+        '200':
+          description: Статус задачи успешно обновлен
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Задача не найдена
+  /task/info:
+    put:
+      security:
+        - HTTPAuthorization: []
+      tags: 
+      - task
+      summary: Обновить информацию о задаче
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                task_id:
+                  type: integer
+                title:
+                  type: string
+                description:
+                  type: string
+              required:
+                - task_id
+      responses:
+        '200':
+          description: Информация о задаче успешно обновлена
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Задача не найдена
+  /task/executor:
+    put:
+      security:
+        - HTTPAuthorization: []
+      tags: 
+      - task
+      summary: Установить исполнителя задачи
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                task_id:
+                  type: integer
+                new_executor_id:
+                  type: integer
+              required:
+                - task_id
+                - new_executor_id
+      responses:
+        '200':
+          description: Исполнитель задачи успешно установлен
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Задача не найдена
+  /task/subtasks:
+    put:
+      security:
+        - HTTPAuthorization: []
+      tags: 
+      - task
+      summary: Добавить подзадачи к задаче
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                subtasks:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - id
+                - subtasks
+      responses:
+        '200':
+          description: Подзадачи успешно добавлены к задаче
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Задача не найдена
+  /task/blocked_task:
+    put:
+      security:
+        - HTTPAuthorization: []
+      tags: 
+      - task
+      summary: Создать связанную заблокированную задачу
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                main_task_id:
+                  type: integer
+                block_tasks:
+                  type: array
+                  items:
+                    type: integer
+              required:
+                - main_task_id
+                - block_tasks
+      responses:
+        '200':
+          description: Заблокированная задача успешно создана
+        '403':
+          description: Доступ запрещен
+components:
+  securityDefinitions:
+    BearerAuth:
+      type: apiKey
+      name: Authorization
+      in: header
+  securitySchemes:
+    HTTPAuthorization:
+      type: http
+      scheme: bearer
+      # bearerFormat: JWT
