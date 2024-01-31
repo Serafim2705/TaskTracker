@@ -152,15 +152,11 @@ def change_passwords():
 
     db.session.add(user)
     db.session.commit()
-    print(auth.current_user())
-    print(active_tokens)
     token = request.headers.get('Authorization')
     token = token[7:]
     active_tokens.pop(token)
     token = generate_password_hash(auth.current_user())
     active_tokens[token] = auth.current_user()
-    print(auth.current_user())
-    print(active_tokens)
     return {"Message": 'Пароль успешно изменен',
             "Authorization": token}, 200
 
@@ -169,7 +165,6 @@ def change_passwords():
 @auth.login_required
 def change_user():
     cur_user = User.query.filter_by(username=auth.current_user()).first()
-    print(cur_user.role_name.name)
     if cur_user.role_name:
         if cur_user.role_name.name != "Manager":
             return {"Message": 'Только менеджер может изменять данные других пользователей '}, 403
@@ -207,8 +202,6 @@ def change_user():
         if User.query.filter_by(username=new_username).first():
             return {"Message": 'Имя занято!'}, 400
         new_user.username = new_username
-        print(active_tokens)
-        print(auth.current_user())
         for token, user in active_tokens.items():
             if user == prev_username:
                 active_tokens[token] = new_username
