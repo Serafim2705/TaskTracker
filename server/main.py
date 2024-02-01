@@ -280,9 +280,6 @@ def create_task():
             db.session.rollback()
             return {"Message": 'error of writing'}, 500
 
-    #  блокированная задача не может быть дальше блокируемая ( кроме want fix)
-    #   для каждой из блокируемых (левых) смотрим следующую , идем до конца, или пока не встретим начало
-
     if prev_tasks:
         prev_tasks = list(set(prev_tasks))
         for id_prev in prev_tasks:
@@ -339,7 +336,7 @@ def edit_blocked_task():
     for id_block_task in block_tasks:
         db.session.add(TaskBlockTask(blocked_id=main_task_id, block_id=id_block_task))
     db.session.commit()
-    # todo рекурсивный обход в глубину, чтобы исключить цикл блокировок
+    # рекурсивный обход в глубину, чтобы исключить цикл блокировок
 
     return {"Message": f'блокируемые задачи для задачи с id={main_task_id} обновлены'}, 200
 
