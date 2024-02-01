@@ -336,7 +336,6 @@ def edit_blocked_task():
     for id_block_task in block_tasks:
         db.session.add(TaskBlockTask(blocked_id=main_task_id, block_id=id_block_task))
     db.session.commit()
-    # рекурсивный обход в глубину, чтобы исключить цикл блокировок
 
     return {"Message": f'блокируемые задачи для задачи с id={main_task_id} обновлены'}, 200
 
