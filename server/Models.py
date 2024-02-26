@@ -11,6 +11,7 @@ class Role(enum.Enum):
 
 
 class Users(db.Model):
+    __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     user_password = db.Column(db.String(1000), nullable=False)  # хеш пароля
@@ -28,6 +29,7 @@ class Status(enum.Enum):
 
 
 class Task(db.Model):
+    __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
     type_of_task = db.Column(db.Integer, nullable=False)
     priority = db.Column(db.Integer, nullable=False)
@@ -41,12 +43,14 @@ class Task(db.Model):
 
 
 class TaskBlockTask(db.Model):
+    __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
     blocked_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
     block_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
 
 
 class SubtaskForTask(db.Model):
+    __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
     main_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
     subtask_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
