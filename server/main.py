@@ -1,12 +1,8 @@
-from flask import Flask, request
-from db import db
-from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 import yaml
 import json
-from server.init_app import auth, active_tokens
+from server.init_app import auth, active_tokens,app
 
-app = Flask(__name__)
 with app.app_context():
     from controllers.user_controller import user_bp
 
@@ -14,13 +10,6 @@ with app.app_context():
     from controllers.task_controller import task_bp
 
     app.register_blueprint(task_bp)
-CORS(app)
-
-app.secret_key = 'my_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123@localhost:5432/postgres'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db.init_app(app)
 
 
 @app.route('/swagger.json')

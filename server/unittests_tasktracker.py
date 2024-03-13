@@ -1,8 +1,7 @@
 import unittest
 import json
+from init_app import db
 from main import app
-# from init_app import *
-from db import db
 from Models import Users as User, Status, Role, TaskBlockTask, SubtaskForTask, Task
 from datetime import datetime
 
@@ -15,9 +14,10 @@ class APITestCase(unittest.TestCase):
         cls.app = app.test_client()
         cls.app.testing = True
         app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123@localhost:5432/test_db'
-
         db.init_app(app)
+
         with app.app_context():
+
             print('Создаем таблицы для теста')
             db.create_all()
             nu = User(username='user',

@@ -1,11 +1,10 @@
 from flask import Flask, request
 from flask import jsonify
 from server.Models import Users as User, Status, Role, Task, TaskBlockTask, SubtaskForTask
-from server.db import db
 from sqlalchemy import or_
 from datetime import datetime
+from server.init_app import auth, active_tokens,db
 from flask import Blueprint
-from server.init_app import auth, active_tokens
 
 task_bp = Blueprint('task_bp', __name__)
 
@@ -201,8 +200,13 @@ def edit_executor_task():
         return {'Message': "Нельзя снимать исполнителя с задачи in progress"}, 400
     if new_executor_id == 0:
         changing_task.executor = None
-        db.session.merge(changing_task)
-        db.session.commit()
+
+        cur_session = db.session.object_session(changing_task)
+        cur_session.add(changing_task)
+        cur_session.commit()
+
+        # db.session.add(changing_task)
+        # db.session.commit()
         return {'Message': "Исполнитель снят"}, 200
 
     executor = User.query.filter_by(id=new_executor_id).first()
@@ -222,8 +226,12 @@ def edit_executor_task():
 
     changing_task.executor = new_executor_id
     changing_task.date_of_edit = datetime.now()
-    db.session.merge(changing_task)
-    db.session.commit()
+
+    cur_session=db.session.object_session(changing_task)
+
+    cur_session.add(changing_task)
+    cur_session.commit()
+
     return {'Message': "Исполнитель успешно обновлен"}, 200
 
 
@@ -264,8 +272,10 @@ def edit_info_task():
     if description:
         task.description = description
     task.date_of_edit = datetime.now()
-    db.session.merge(task)
-    db.session.commit()
+    cur_session = db.session.object_session(task)
+
+    cur_session.add(task)
+    cur_session.commit()
 
     return {'Message': 'Задача обновлена успешно!'}, 200
 
@@ -322,8 +332,10 @@ def edit_status_task():
 
     changing_task.status = new_status
     changing_task.date_of_edit = datetime.now()
-    db.session.merge(changing_task)
-    db.session.commit()
+    cur_session = db.session.object_session(changing_task)
+
+    cur_session.add(changing_task)
+    cur_session.commit()
     return {'Message': "Статус изменен", 'code': 200}, 200
 
 
@@ -489,8 +501,5 @@ def delete_task(task_id):
     for block_del in blocks_del:
         db.session.delete(block_del)
 
-    try:
-        db.session.commit()
-    except:
-        return {'Message': "Неизвестная ошибка сервера"}, 500
+    db.session.commit()
     return {'Message': "Задача удалена успешно!"}, 200

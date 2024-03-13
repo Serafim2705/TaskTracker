@@ -1,11 +1,11 @@
 from flask import Flask, request
 from flask import jsonify
 from server.Models import Users as User, Status, Role
-from server.db import db
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
+from server.init_app import auth,active_tokens,db,app
 from flask import Blueprint
-from server.init_app import auth,active_tokens
+
 user_bp = Blueprint('user_bp', __name__)
 
 
@@ -109,8 +109,10 @@ def change_passwords():
         return {"Message": 'Неверный пароль'}, 403
     user.user_password = generate_password_hash(new_password)
 
-    db.session.merge(user)
-    db.session.commit()
+    # db.session.merge(user)
+    cur_session = db.session.object_session(user)
+    cur_session.commit()
+
     token = request.headers.get('Authorization')
     token = token[7:]
     active_tokens.pop(token)
@@ -166,7 +168,9 @@ def change_user():
                 active_tokens[token] = new_username
                 break
 
-    db.session.merge(new_user)
-    db.session.commit()
+    cur_session = db.session.object_session(new_user)
+    cur_session.add(new_user)
+
+    cur_session.commit()
 
     return {"Message": 'Данные успешно обновлены!'}, 200
