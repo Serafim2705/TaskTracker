@@ -3,7 +3,7 @@ from flask import jsonify
 from server.Models import Users as User, Status, Role, Task, TaskBlockTask, SubtaskForTask
 from sqlalchemy import or_
 from datetime import datetime
-from server.init_app import auth, active_tokens,db
+from server.init_app import auth, active_tokens, db
 from flask import Blueprint
 
 task_bp = Blueprint('task_bp', __name__)
@@ -47,14 +47,16 @@ def create_task():
         return {"Message": 'Внутрення ошибка сервера: ошибка при проверке данных пользователя'}, 500
 
     if executor:
-        user = User.query.filter_by(id=executor).first()
-        if not user:
-            return {"Message": 'Неверный исполнитель'}, 404
-        if not user.role_name:
-            return {"Message": 'Исполнителю не назначена роль'}, 400
-        if user.role_name.name == 'Manager':
-            return {"Message": 'Менеджер не может быть исполнителем задачи!'}, 400
-
+        if executor != 0:
+            user = User.query.filter_by(id=executor).first()
+            if not user:
+                return {"Message": 'Неверный исполнитель'}, 404
+            if not user.role_name:
+                return {"Message": 'Исполнителю не назначена роль'}, 400
+            if user.role_name.name == 'Manager':
+                return {"Message": 'Менеджер не может быть исполнителем задачи!'}, 400
+        else:
+            executor = None
     new_task = Task(type_of_task=type_of_task, topic=topic, description=description,
                     priority=priority, status='To_do', executor=executor,
                     date_of_found=date_of_found, date_of_edit=date_of_edit, owner_task=cur_user.id)
@@ -227,7 +229,7 @@ def edit_executor_task():
     changing_task.executor = new_executor_id
     changing_task.date_of_edit = datetime.now()
 
-    cur_session=db.session.object_session(changing_task)
+    cur_session = db.session.object_session(changing_task)
 
     cur_session.add(changing_task)
     cur_session.commit()
