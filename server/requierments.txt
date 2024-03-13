@@ -6,3 +6,4 @@ Werkzeug == 2.2.2
 Flask-HTTPAuth == 4.8.0
 Flask-Cors == 4.0.0
 psycopg2==2.9.9
+PyYAML==6.0
